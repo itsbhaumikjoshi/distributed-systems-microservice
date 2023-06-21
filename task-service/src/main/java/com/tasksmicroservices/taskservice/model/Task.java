@@ -13,6 +13,11 @@ public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Column(name = "user_id", nullable = false)
+    @JsonProperty("user_id")
+    private UUID userId;
+
     @Column(unique = true, nullable = false)
     @Size(min = 5, max = 250, message = "The name must be of between 5 and 250 characters.")
     @NotNull
@@ -49,8 +54,9 @@ public class Task {
 
     }
 
-    public Task(UUID id, String name, String description, boolean isCompleted, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public Task(UUID id, UUID userId, String name, String description, boolean isCompleted, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
+        this.userId = userId;
         this.name = name;
         this.description = description;
         this.isCompleted = isCompleted;
@@ -64,6 +70,14 @@ public class Task {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public String getName() {
@@ -110,6 +124,7 @@ public class Task {
     public String toString() {
         return "Task{" +
                 "id=" + id +
+                ", userId=" + userId +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
                 ", isCompleted=" + isCompleted +

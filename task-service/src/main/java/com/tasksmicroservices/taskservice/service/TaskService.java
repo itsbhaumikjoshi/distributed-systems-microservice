@@ -16,8 +16,8 @@ public class TaskService {
     @Autowired
     private TaskRepository taskRepository;
 
-    public List<Task> findAllTasks() {
-        return taskRepository.findAll();
+    public List<Task> findAllTasksForAUser(UUID userId) {
+        return taskRepository.findByUserId(userId);
     }
 
     public Task save(Task task) {
@@ -29,16 +29,16 @@ public class TaskService {
         return savedTask;
     }
 
-    public Optional<Task> getTaskById(UUID id) {
-        return taskRepository.findById(id);
+    public Optional<Task> getTaskByIdAndUserId(UUID userId, UUID id) {
+        return taskRepository.findByIdAndUserId(id, userId);
     }
 
-    public void deleteTaskById(UUID id) {
-        taskRepository.deleteById(id);
+    public void deleteTaskByIdForUserId(UUID userId,UUID id) {
+        taskRepository.deleteByIdAndUserId(id, userId);
     }
 
-    public boolean setTaskAsCompleted(UUID id) {
-        int updatedTasks = taskRepository.setTaskAsCompleted(id);
+    public boolean setTaskAsCompleted(UUID userId, UUID id) {
+        int updatedTasks = taskRepository.setTaskAsCompleted(id, userId);
         return updatedTasks > 0;
     }
 

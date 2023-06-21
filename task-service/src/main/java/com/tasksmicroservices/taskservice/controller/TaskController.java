@@ -19,21 +19,21 @@ public class TaskController {
     private TaskService taskService;
 
     @GetMapping
-    public ResponseEntity<List<Task>> getAllTasks() {
-        List<Task> tasks = taskService.findAllTasks();
+    public ResponseEntity<List<Task>> getAllTasks(@RequestHeader("X-USER-ID") String userId) {
+        List<Task> tasks = taskService.findAllTasksForAUser(UUID.fromString(userId));
         return ResponseEntity.ok().body(tasks);
     }
 
     @PostMapping
-    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+    public ResponseEntity<Task> createTask(@RequestHeader("X-USER-ID") String userId, @RequestBody Task task) {
+        task.setUserId(UUID.fromString(userId));
         Task createdTask = taskService.save(task);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdTask);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Task> getTask(@PathVariable String id) {
-        UUID idUUID = UUID.fromString(id);
-        Optional<Task> task = taskService.getTaskById(idUUID);
+    public ResponseEntity<Task> getTask(@RequestHeader("X-USER-ID") String userId, @PathVariable String id) {
+        Optional<Task> task = taskService.getTaskByIdAndUserId(UUID.fromString(userId), UUID.fromString(id));
         if (task.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
@@ -41,16 +41,14 @@ public class TaskController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteTask(@PathVariable String id) {
-        UUID UUIDId = UUID.fromString(id);
-        taskService.deleteTaskById(UUIDId);
+    public ResponseEntity<Object> deleteTask(@RequestHeader("X-USER-ID") String userId, @PathVariable String id) {
+        taskService.deleteTaskByIdForUserId(UUID.fromString(userId), UUID.fromString(id));
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}/completed")
-    public ResponseEntity<Object> setTaskAsCompleted(@PathVariable String id) {
-        UUID UUIDId = UUID.fromString(id);
-        if(taskService.setTaskAsCompleted(UUIDId)) {
+    public ResponseEntity<Object> setTaskAsCompleted(@RequestHeader("X-USER-ID") String userId, @PathVariable String id) {
+        if(taskService.setTaskAsCompleted(UUID.fromString(userId), UUID.fromString(id))) {
             return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
         }
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
