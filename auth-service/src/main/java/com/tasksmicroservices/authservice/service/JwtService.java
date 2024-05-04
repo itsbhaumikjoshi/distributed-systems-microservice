@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -16,8 +17,16 @@ import java.util.HashMap;
 @Component
 public class JwtService {
 
-    @Value("${jwt.security.secret}")
-    private String secretKey;
+    @Value("${jwt.signing.key}")
+    private String signingKey;
+
+    private Key secretKey;
+
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes = Decoders.BASE64.decode(signingKey);
+        secretKey = Keys.hmacShaKeyFor(keyBytes);
+    }
 
     public String create(User user, HashMap<String, Object> claims, Integer expiration) {
         return Jwts
@@ -26,22 +35,17 @@ public class JwtService {
                 .setSubject(user.getId().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSiginingKey(), SignatureAlgorithm.HS256)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
     public Claims validateAndClaims(String token) {
         return Jwts
                 .parserBuilder()
-                .setSigningKey(getSiginingKey())
+                .setSigningKey(secretKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
-    }
-
-    private Key getSiginingKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
     }
 
 }
